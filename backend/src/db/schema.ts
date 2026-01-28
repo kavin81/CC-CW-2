@@ -5,6 +5,7 @@ export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   username: text('username').notNull().unique(),
   password: text('password').notNull(),
+  role: text('role', { enum: ['admin', 'user'] }).notNull().default('user'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .default(sql`(unixepoch())`),
@@ -24,7 +25,23 @@ export const pastes = sqliteTable('pastes', {
   expiresAt: integer('expires_at', { mode: 'timestamp' }),
 });
 
+export const pastePermissions = sqliteTable('paste_permissions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  pasteId: integer('paste_id')
+    .notNull()
+    .references(() => pastes.id, { onDelete: 'cascade' }),
+  userId: integer('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  canEdit: integer('can_edit', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type Paste = typeof pastes.$inferSelect;
 export type InsertPaste = typeof pastes.$inferInsert;
+export type PastePermission = typeof pastePermissions.$inferSelect;
+export type InsertPastePermission = typeof pastePermissions.$inferInsert;

@@ -9,6 +9,7 @@ import { Plus, Copy, Trash2, ExternalLink } from 'lucide-react';
 
 export function DashboardPage() {
   const [pastes, setPastes] = useState<Paste[]>([]);
+  const [sharedPastes, setSharedPastes] = useState<Paste[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -21,6 +22,7 @@ export function DashboardPage() {
     try {
       const response = await pasteApi.getMyPastes();
       setPastes(response.pastes);
+      setSharedPastes(response.sharedPastes || []);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -82,55 +84,107 @@ export function DashboardPage() {
 
         {loading ? (
           <p className="text-center text-muted-foreground">Loading...</p>
-        ) : pastes.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground mb-4">No pastes yet</p>
-              <Button onClick={() => navigate('/new')}>
-                Create your first paste
-              </Button>
-            </CardContent>
-          </Card>
         ) : (
-          <div className="grid gap-4">
-            {pastes.map((paste) => (
-              <Card key={paste.shareId}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-xl">{paste.title}</CardTitle>
-                      <CardDescription>
-                        Created {new Date(paste.createdAt).toLocaleString()}
-                      </CardDescription>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate(`/share/${paste.shareId}`)}
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyShareUrl(paste.shareId)}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(paste.shareId)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+          <>
+            {pastes.length === 0 && sharedPastes.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <p className="text-muted-foreground mb-4">No pastes yet</p>
+                  <Button onClick={() => navigate('/new')}>
+                    Create your first paste
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                {pastes.length > 0 && (
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-bold mb-4">My Pastes</h2>
+                    <div className="grid gap-4">
+                      {pastes.map((paste) => (
+                        <Card key={paste.shareId}>
+                          <CardHeader>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-xl">{paste.title}</CardTitle>
+                                <CardDescription>
+                                  Created {new Date(paste.createdAt).toLocaleString()}
+                                </CardDescription>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => navigate(`/share/${paste.shareId}`)}
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => copyShareUrl(paste.shareId)}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDelete(paste.shareId)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardHeader>
+                        </Card>
+                      ))}
                     </div>
                   </div>
-                </CardHeader>
-              </Card>
-            ))}
-          </div>
+                )}
+
+                {sharedPastes.length > 0 && (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-4">Shared with Me</h2>
+                    <div className="grid gap-4">
+                      {sharedPastes.map((paste) => (
+                        <Card key={paste.shareId}>
+                          <CardHeader>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <CardTitle className="text-xl">{paste.title}</CardTitle>
+                                <CardDescription>
+                                  Created {new Date(paste.createdAt).toLocaleString()}
+                                  {paste.canEdit && (
+                                    <span className="ml-2 text-green-600 font-medium">• Can Edit</span>
+                                  )}
+                                </CardDescription>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => navigate(`/share/${paste.shareId}`)}
+                                >
+                                  <ExternalLink className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => copyShareUrl(paste.shareId)}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </CardHeader>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
 });
 
 // Add token to requests
@@ -17,6 +17,7 @@ export interface User {
   id: number;
   username: string;
   createdAt: string;
+  role?: 'admin' | 'user';
 }
 
 export interface Paste {
@@ -27,9 +28,22 @@ export interface Paste {
   createdAt: string;
   expiresAt?: string;
   shareUrl?: string;
+  canEdit?: boolean;
+  isOwner?: boolean;
+}
+
+export interface SharedUser {
+  userId: number;
+  username: string;
+  canEdit: boolean;
 }
 
 export interface SigninData {
+  username: string;
+  password: string;
+}
+
+export interface SignupData {
   username: string;
   password: string;
 }
@@ -43,9 +57,23 @@ export interface CreatePasteData {
   title?: string;
   content: string;
   expiresIn?: number;
+  sharedWith?: Array<{
+    username: string;
+    canEdit: boolean;
+  }>;
+}
+
+export interface UpdatePasteData {
+  content?: string;
+  title?: string;
 }
 
 export const authApi = {
+  signup: async (data: SignupData) => {
+    const response = await api.post('/auth/signup', data);
+    return response.data;
+  },
+
   signin: async (data: SigninData) => {
     const response = await api.post('/auth/signin', data);
     return response.data;
@@ -58,6 +86,17 @@ export const authApi = {
 
   getMe: async () => {
     const response = await api.get('/auth/me');
+    return response.data;
+  },
+
+  // Admin endpoints
+  getAllUsers: async () => {
+    const response = await api.get('/auth/users');
+    return response.data;
+  },
+
+  updateUserRole: async (userId: number, role: 'admin' | 'user') => {
+    const response = await api.patch(`/auth/users/${userId}/role`, { role });
     return response.data;
   },
 };
@@ -75,6 +114,16 @@ export const pasteApi = {
 
   getByShareId: async (shareId: string) => {
     const response = await api.get(`/pastes/${shareId}`);
+    return response.data;
+  },
+
+  update: async (shareId: string, data: UpdatePasteData) => {
+    const response = await api.patch(`/pastes/${shareId}`, data);
+    return response.data;
+  },
+
+  getSharedUsers: async (shareId: string) => {
+    const response = await api.get(`/pastes/${shareId}/shared-users`);
     return response.data;
   },
 

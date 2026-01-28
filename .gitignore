@@ -1,7 +1,20 @@
 node_modules
 dist
-# .env
-# .env.local
-# *.db
+.env
+.env.local
+.env.production
+*.db
 *.db-journal
 .DS_Store
+.vercel
+.turso
+backend/data/
+pnpm-debug.log*
+logs/
+*.log
+.pnpm-store/
+coverage/
+.vscode/
+.idea/
+*.swp
+*.tsbuildinfo

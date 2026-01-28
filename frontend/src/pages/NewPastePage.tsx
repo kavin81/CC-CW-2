@@ -8,14 +8,50 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 import { Navbar } from '@/components/Navbar';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus, X, UserPlus } from 'lucide-react';
+
+interface SharedUser {
+  username: string;
+  canEdit: boolean;
+}
 
 export function NewPastePage() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sharedUsers, setSharedUsers] = useState<SharedUser[]>([]);
+  const [newUsername, setNewUsername] = useState('');
+  const [canEdit, setCanEdit] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const addSharedUser = () => {
+    if (!newUsername.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a username',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (sharedUsers.some((u) => u.username === newUsername.trim())) {
+      toast({
+        title: 'Error',
+        description: 'User already added',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setSharedUsers([...sharedUsers, { username: newUsername.trim(), canEdit }]);
+    setNewUsername('');
+    setCanEdit(false);
+  };
+
+  const removeSharedUser = (username: string) => {
+    setSharedUsers(sharedUsers.filter((u) => u.username !== username));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +71,7 @@ export function NewPastePage() {
       const response = await pasteApi.create({
         title: title.trim() || 'Untitled',
         content,
+        sharedWith: sharedUsers.length > 0 ? sharedUsers : undefined,
       });
       toast({
         title: 'Success',
@@ -95,6 +132,63 @@ export function NewPastePage() {
                   required
                 />
               </div>
+
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Share with Users (optional)
+                </Label>
+                <div className="space-y-3 p-4 border rounded-lg bg-muted/50">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Enter username"
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSharedUser())}
+                    />
+                    <label className="flex items-center gap-2 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={canEdit}
+                        onChange={(e) => setCanEdit(e.target.checked)}
+                        className="rounded"
+                      />
+                      <span className="text-sm">Can Edit</span>
+                    </label>
+                    <Button type="button" size="sm" onClick={addSharedUser}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  {sharedUsers.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium">Shared with:</div>
+                      {sharedUsers.map((user) => (
+                        <div
+                          key={user.username}
+                          className="flex items-center justify-between p-2 bg-background border rounded"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{user.username}</span>
+                            <span className="text-xs text-muted-foreground">
+                              ({user.canEdit ? 'Can Edit' : 'View Only'})
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => removeSharedUser(user.username)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="flex justify-end space-x-2">
                 <Button
                   type="button"

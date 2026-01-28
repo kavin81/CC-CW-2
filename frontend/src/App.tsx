@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { SigninPage } from './pages/SigninPage';
+import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { NewPastePage } from './pages/NewPastePage';
 import { ViewPastePage } from './pages/ViewPastePage';
@@ -21,6 +22,7 @@ function App() {
           }
         />
         <Route path="/signin" element={<SigninPage />} />
+        <Route path="/signup" element={<SignupPage />} />
 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
